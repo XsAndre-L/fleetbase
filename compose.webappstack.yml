@@ -1,0 +1,120 @@
+services:
+  database:
+    image: mysql:8.0.44
+    restart: "no"
+    command: ["mysqld", "--skip-log-bin"]
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:?}
+      MYSQL_USER: fleetbase
+      MYSQL_PASSWORD: ${DB_PASSWORD:?}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?}
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h 127.0.0.1 -u fleetbase -D $$MYSQL_DATABASE -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 36
+  cache:
+    image: redis:7.4.2-alpine
+    restart: "no"
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?}", "--appendonly", "yes"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+    volumes:
+      - cache:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=$$REDIS_PASSWORD redis-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+  application:
+    image: ${WEBAPPSTACK_API_IMAGE:?}
+    restart: "no"
+    environment: &runtime
+      APP_ENV: local
+      APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY:?}
+      APP_URL: ${WEBAPPSTACK_API_ORIGIN:?}
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: warning
+      HTTP_CLIENT_TRACE_ENABLED: "false"
+      DB_CONNECTION: mysql
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:?}
+      DB_USERNAME: fleetbase
+      DB_PASSWORD: ${DB_PASSWORD:?}
+      CACHE_DRIVER: redis
+      REDIS_HOST: cache
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?}
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SESSION_COOKIE: was_fleetbase_${WEBAPPSTACK_SERVICE_ITEM_ID:?}
+      SESSION_SAME_SITE: lax
+      BROADCAST_DRIVER: log
+      CONSOLE_HOST: ${WEBAPPSTACK_CONSOLE_ORIGIN:?}
+      WEBAPPSTACK_ENABLED: "true"
+      WEBAPPSTACK_APP_ID: ${WEBAPPSTACK_APP_ID:?}
+      WEBAPPSTACK_ENVIRONMENT_ID: ${WEBAPPSTACK_ENVIRONMENT_ID:?}
+      WEBAPPSTACK_SERVICE_ITEM_ID: ${WEBAPPSTACK_SERVICE_ITEM_ID:?}
+      WEBAPPSTACK_INSTANCE_CREDENTIAL: ${WEBAPPSTACK_INSTANCE_CREDENTIAL:?}
+      WEBAPPSTACK_PLATFORM_API_ORIGIN: ${WEBAPPSTACK_PLATFORM_API_ORIGIN:?}
+      WEBAPPSTACK_CONSOLE_ORIGIN: ${WEBAPPSTACK_CONSOLE_ORIGIN:?}
+      WEBAPPSTACK_MANAGER_ORIGIN: ${WEBAPPSTACK_MANAGER_ORIGIN:?}
+      WEBAPPSTACK_WORKSPACE_NAME: ${WEBAPPSTACK_WORKSPACE_NAME:-App delivery workspace}
+      WEBAPPSTACK_FORK_REVISION: ${WEBAPPSTACK_FORK_REVISION:?}
+    ports:
+      - "127.0.0.1:${WEBAPPSTACK_API_PORT:?}:8000"
+    volumes:
+      - documents:/fleetbase/api/storage/app
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      database:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/health')===false?1:0);"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+  queue:
+    image: ${WEBAPPSTACK_API_IMAGE:?}
+    restart: "no"
+    command: ["php", "artisan", "queue:work", "--sleep=2", "--tries=3"]
+    environment: *runtime
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      database:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+  scheduler:
+    image: ${WEBAPPSTACK_API_IMAGE:?}
+    restart: "no"
+    command: ["php", "artisan", "schedule:work"]
+    environment: *runtime
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      database:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+  console:
+    image: ${WEBAPPSTACK_CONSOLE_IMAGE:?}
+    restart: "no"
+    ports:
+      - "127.0.0.1:${WEBAPPSTACK_CONSOLE_PORT:?}:4200"
+    volumes:
+      - ${WEBAPPSTACK_CONSOLE_CONFIG:?}:/usr/share/nginx/html/fleetbase.config.json:ro
+    depends_on:
+      application:
+        condition: service_healthy
+volumes:
+  database:
+  cache:
+  documents:

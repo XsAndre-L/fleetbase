@@ -1,4 +1,5 @@
 import Route from '@ember/routing/route';
+import config from '@fleetbase/console/config/environment';
 import { inject as service } from '@ember/service';
 import { action } from '@ember/object';
 import removeBootLoader from '../../utils/remove-boot-loader';
@@ -21,6 +22,10 @@ export default class AuthLoginRoute extends Route {
      * @void
      */
     async beforeModel(transition) {
+        if (config.APP.webappstack) {
+            return this.router.transitionTo('auth.webappstack');
+        }
+
         const { notConfigured, shouldOnboard, transition: installTransition } = await this.installation.checkOnboarding();
 
         if (notConfigured) {

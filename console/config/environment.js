@@ -23,6 +23,7 @@ module.exports = function (environment) {
 
         APP: {
             autoboot: true,
+            webappstack: toBoolean(getenv('WEBAPPSTACK_ENABLED', false)),
             extensions: asArray(getenv('EXTENSIONS')),
             disableRuntimeConfig: toBoolean(getenv('DISABLE_RUNTIME_CONFIG', environment === 'production')),
             disableFleetbaseAttribution: toBoolean(getenv('DISABLE_FLEETBASE_ATTRIBUTION', false)),

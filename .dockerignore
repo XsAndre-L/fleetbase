@@ -25,3 +25,7 @@ docker-compose.yml
 $virtualenv.tar.gz
 $node_modules.tar.gz
 docker-compose.override.yml
+
+# App-linked local build output and private recovery state
+/build/
+/api/tests/

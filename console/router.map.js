@@ -26,6 +26,8 @@ Router.map(function () {
         this.route('verify-contact', { path: '/verify-contact/:id' });
         this.route('portal-login', { path: '/portal' });
         this.route('oauth-callback', { path: '/oauth/callback' });
+        this.route('webappstack', { path: '/webappstack' });
+        this.route('webappstack-callback', { path: '/webappstack-callback' });
     });
     // "Continue with Fleetbase": an app's consent screen. Outside `console` so a signed-out
     // user can land here before signing in.

@@ -39,3 +39,6 @@ builds/osx/frankenphp
 *.dll
 *.so
 *.dylib
+
+# App-linked local build output and private recovery state
+/build/
