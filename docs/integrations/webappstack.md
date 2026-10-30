@@ -133,3 +133,15 @@ their exit evidence. Schema observation timeouts preserve ongoing DDL and requir
 reattaching the same immutable target; do not stop an active schema migration or
 reset its retained database. The current legacy review run remains pinned to its
 original image/commit independently of subsequent fork dev commits.
+
+The cold-start source change was introduced in dev commit
+f18213372ed799a370ad7efac2620eae021dfbd6. The original retained WebAppStack
+review remains pinned to310688b9c1fe6a8f104cb478500acdb920771d8c; advancing
+dev does not mutate its detached source, immutable image or prepared configuration.
+Adopting newer source requires a fresh prepared deployment after recovery.
+
+New managed plans freeze the server-selected migration observation budget
+(APP_LOCAL_FLEETBASE_MIGRATION_WAIT_MINUTES, integer1..360, default360minutes).
+Legacy prepared specs retain their45-minute budget. These limits stop observation,
+never active DDL, and make no completion-time promise. The platform reports fixed
+database/schema/runtime/readiness stages without percentages or ETA.
