@@ -119,3 +119,17 @@ Compatibility sources: core-api 1.6.74 at `ac97b5620b260660ae4e6fd5ea0e64025629b
 and FleetOps 0.6.75 at `811aa711a68833dfd8390d8ddac582d4ed75f3c6`, pinned by
 `api/composer.lock`. The owned console router source is `console/router.map.js`;
 the extension build regenerates `console/app/router.js`.
+
+## Durable local first startup
+
+MySQL uses a five-minute health start period before its existing bounded failure
+checks. The standalone launcher waits at most ten minutes for database/cache
+readiness. This accommodates the observed persistent-volume initialization without
+disabling fsync or automatic restart protection. App, worker and signed readiness
+checks keep their separate bounds.
+
+The platform managed adapter journals detached named migration one-offs and retains
+their exit evidence. Schema observation timeouts preserve ongoing DDL and require
+reattaching the same immutable target; do not stop an active schema migration or
+reset its retained database. The current legacy review run remains pinned to its
+original image/commit independently of subsequent fork dev commits.

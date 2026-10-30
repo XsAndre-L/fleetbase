@@ -56,7 +56,7 @@ if ($consoleConfiguration['API_HOST'] -ne $settings['WEBAPPSTACK_API_ORIGIN'] -o
     throw 'Console configuration must contain only its exact public API binding.'
 }
 Invoke-OwnedCompose @('config', '--quiet')
-Invoke-OwnedCompose @('up', '-d', '--wait', '--wait-timeout', '240', 'database', 'cache')
+Invoke-OwnedCompose @('up', '-d', '--wait', '--wait-timeout', '600', 'database', 'cache')
 Invoke-OwnedCompose @('run', '--rm', '--no-deps', 'application', 'php', 'artisan', 'webappstack:prepare')
 Invoke-OwnedCompose @('up', '-d', '--wait', '--wait-timeout', '240', 'application', 'queue', 'scheduler', 'console')
 
