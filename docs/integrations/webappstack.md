@@ -100,7 +100,9 @@ missing permission definitions; it never creates an insecure default administrat
 All containers explicitly use `restart: "no"`; all published ports bind loopback.
 Stop retains volumes and documents. Start verifies immutable image labels, exact
 scope, nonce/HMAC readiness, extension migrations and a real same-revision queue
-probe. The receipt under `build/.state/webappstack/<service>/receipt.json` records
+probe. Its HMAC signs nonce, App/environment/service, extension version, fork
+revision, migrations/authorization/queue flags and disabled socket state. The
+receipt under `build/.state/webappstack/<service>/receipt.json` records
 owned containers, images and origins without secret values. Retain the private
 environment file, image versions and volumes for recovery; never substitute a
 different App's database or delete volumes to repair startup.

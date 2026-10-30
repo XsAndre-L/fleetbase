@@ -65,14 +65,14 @@ for ($attempt = 0; $attempt -lt 24; $attempt++) {
     $nonce = [Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).ToLowerInvariant()
     try {
         $ready = Invoke-RestMethod -Uri ($settings['WEBAPPSTACK_API_ORIGIN'] + '/integrations/webappstack/ready?nonce=' + $nonce) -TimeoutSec 5
-        $payload = $nonce + ':' + $scope + ':1'
+        $payload = $nonce + ':' + $scope + ':1:' + $revision + ':true:true:true:false'
         $hmac = [System.Security.Cryptography.HMACSHA256]::new([Text.Encoding]::UTF8.GetBytes($settings['WEBAPPSTACK_INSTANCE_CREDENTIAL']))
         try { $expected = $hmac.ComputeHash([Text.Encoding]::UTF8.GetBytes($payload)) } finally { $hmac.Dispose() }
         $actual = [Convert]::FromHexString($ready.proof)
         $proofReady = ($ready.ready -eq $true -and $ready.nonce -eq $nonce -and $ready.appId -eq $settings['WEBAPPSTACK_APP_ID'] -and
             $ready.environmentId -eq $settings['WEBAPPSTACK_ENVIRONMENT_ID'] -and $ready.serviceItemId -eq $serviceId -and
             $ready.engine -eq 'fleetbase' -and $ready.extensionVersion -eq '1' -and $ready.forkRevision -eq $revision -and
-            $ready.migrationsReady -eq $true -and $ready.authorizationEnforced -eq $true -and $ready.queueReady -eq $true -and
+            $ready.migrationsReady -eq $true -and $ready.authorizationEnforced -eq $true -and $ready.queueReady -eq $true -and $ready.socketsEnabled -eq $false -and
             [System.Security.Cryptography.CryptographicOperations]::FixedTimeEquals($expected, $actual))
         if ($proofReady) { break }
     } catch { }

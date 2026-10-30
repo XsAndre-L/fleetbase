@@ -33,6 +33,9 @@ class WebAppStackServiceProvider extends ServiceProvider
         if (strlen(config('webappstack.instance_credential', '')) < 32 || !config('app.key')) {
             throw new \RuntimeException('App-linked delivery requires generated instance and encryption secrets.');
         }
+        if (!preg_match('/^[a-f0-9]{40}$/', config('webappstack.fork_revision', ''))) {
+            throw new \RuntimeException('App-linked delivery requires an exact committed fork revision.');
+        }
         $apiOrigin = parse_url(config('app.url'));
         $consoleOrigin = parse_url(config('webappstack.console_origin'));
         if (!$apiOrigin || ($apiOrigin['host'] ?? null) !== ($consoleOrigin['host'] ?? null)

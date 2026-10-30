@@ -24,6 +24,8 @@ class BridgeController
         foreach (['users', 'companies', 'company_users', 'webappstack_workspaces', 'webappstack_identities', 'webappstack_sessions', 'webappstack_login_transactions', 'webappstack_audit'] as $table) {
             abort_unless(Schema::hasTable($table), 503, 'Delivery extension migrations are pending.');
         }
+        abort_unless(config('queue.default') === 'redis' && config('cache.default') === 'redis', 503,
+            'Delivery readiness requires a separate Redis queue worker and shared Redis cache.');
         Queue::connection()->size();
         $scope = $this->platform->scope();
         $scopeKey = hash('sha256', implode(':', array_values($scope)));
@@ -35,7 +37,8 @@ class BridgeController
             'ready' => true, 'engine' => 'fleetbase', 'extensionVersion' => '1',
             'forkRevision' => config('webappstack.fork_revision'), 'migrationsReady' => true,
             'authorizationEnforced' => true, 'queueReady' => true, 'socketsEnabled' => false,
-            'nonce' => $nonce, 'proof' => hash_hmac('sha256', implode(':', [$nonce, ...array_values($scope), '1']), config('webappstack.instance_credential')),
+            'nonce' => $nonce, 'proof' => hash_hmac('sha256', implode(':', [$nonce, ...array_values($scope), '1',
+                config('webappstack.fork_revision'), 'true', 'true', 'true', 'false']), config('webappstack.instance_credential')),
         ]))->header('Cache-Control', 'no-store');
     }
 
