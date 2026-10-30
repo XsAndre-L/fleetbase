@@ -6,7 +6,10 @@ ENV WEBAPPSTACK_FORK_REVISION=${FORK_REVISION}
 COPY --chown=www-data:www-data api/app /fleetbase/api/app
 COPY --chown=www-data:www-data api/config /fleetbase/api/config
 COPY --chown=www-data:www-data api/database /fleetbase/api/database
-RUN composer dump-autoload --no-dev --no-scripts --classmap-authoritative \
+# The delivery image must not register the separate Storefront database, observers or jobs.
+RUN php -r '$path="composer.json"; $config=json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR); $ignored=$config["extra"]["laravel"]["dont-discover"] ?? []; $config["extra"]["laravel"]["dont-discover"]=array_values(array_unique(array_merge($ignored, ["fleetbase/storefront-api"]))); file_put_contents($path, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));' \
+    && rm -f bootstrap/cache/packages.php bootstrap/cache/services.php \
+    && composer dump-autoload --no-dev --no-scripts --classmap-authoritative \
     && find app/Integrations/WebAppStack -name '*.php' -exec php -l {} \; \
     && php -l app/Providers/WebAppStackServiceProvider.php
 ENTRYPOINT ["docker-php-entrypoint"]
