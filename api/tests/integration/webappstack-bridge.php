@@ -1,5 +1,13 @@
 <?php
 
+$fixturePassed = false;
+register_shutdown_function(static function () use (&$fixturePassed): void {
+    if (!$fixturePassed) {
+        fwrite(STDERR, "FAIL: bridge fixture did not complete all assertions.\n");
+        exit(1);
+    }
+});
+
 require __DIR__ . '/../../vendor/autoload.php';
 $app = require __DIR__ . '/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
@@ -152,5 +160,6 @@ check(requestBridge('POST', '/integrations/webappstack/session')->getStatusCode(
 $revoked = true;
 check(requestBridge('POST', '/integrations/webappstack/session')->getStatusCode() === 401, 'Verified existing MFA session survived revocation.');
 
+$fixturePassed = true;
 echo "PASS: isolated MySQL browser-bound handoff, core console auth, safe token marker, company isolation, staff downgrade, revocation and MFA.\n";
 echo "Platform authority is an isolated HTTP facade fixture; real platform/browser integration remains a separate acceptance gate.\n";

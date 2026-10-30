@@ -53,7 +53,7 @@ class WebAppStackServiceProvider extends ServiceProvider
             Route::post('session', [BridgeController::class, 'session']);
             Route::post('logout', [BridgeController::class, 'logout']);
             Route::post('mfa/challenge', [BridgeController::class, 'mfaChallenge']);
-            Route::post('mfa/verify', [BridgeController::class, 'mfaVerify'])->middleware('throttle:10,1');
+            Route::post('mfa/verify', [BridgeController::class, 'mfaVerify'])->middleware('throttle:10,1,webappstack-mfa:');
         });
     }
 }
