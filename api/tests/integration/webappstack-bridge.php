@@ -37,6 +37,16 @@ check(config('app.env') === 'testing' && getenv('WEBAPPSTACK_BRIDGE_TEST') === '
 $scope = [config('webappstack.app_id'), config('webappstack.environment_id'), config('webappstack.service_item_id')];
 check(DB::connection()->getDatabaseName() === 'was_fleetbase_' . substr(hash('sha256', implode(':', $scope)), 0, 24), 'Wrong fixture database.');
 check(DB::table('webappstack_sessions')->count() === 0 && DB::table('users')->count() === 0, 'Fixture must start empty.');
+$scopeBridge = $app->make(BridgeSessions::class);
+foreach (['session', 'flow', 'mfa'] as $suffix) {
+    $originalName = $scopeBridge->cookieName($suffix);
+    foreach (['app_id', 'environment_id', 'service_item_id'] as $key) {
+        $originalScope = config('webappstack.' . $key);
+        config(['webappstack.' . $key => (string) Str::uuid()]);
+        check($scopeBridge->cookieName($suffix) !== $originalName, 'Browser cookie collided across delivery scopes.');
+        config(['webappstack.' . $key => $originalScope]);
+    }
+}
 $identity = [
     'appId' => $scope[0], 'environmentId' => $scope[1], 'serviceItemId' => $scope[2],
     'organizationKey' => implode(':', $scope), 'subjectId' => (string) Str::uuid(),

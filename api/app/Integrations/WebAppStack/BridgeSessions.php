@@ -18,7 +18,8 @@ class BridgeSessions
 
     public function cookieName(string $suffix = 'session'): string
     {
-        return 'fleetbase.was.' . config('webappstack.service_item_id') . '.' . $suffix;
+        $scope = [config('webappstack.app_id'), config('webappstack.environment_id'), config('webappstack.service_item_id')];
+        return 'fleetbase.was.' . hash('sha256', implode(':', $scope)) . '.' . $suffix;
     }
 
     public function cookie(string $credential, int $seconds, string $suffix = 'session'): Cookie
