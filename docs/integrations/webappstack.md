@@ -145,3 +145,27 @@ New managed plans freeze the server-selected migration observation budget
 Legacy prepared specs retain their45-minute budget. These limits stop observation,
 never active DDL, and make no completion-time promise. The platform reports fixed
 database/schema/runtime/readiness stages without percentages or ETA.
+
+## PHP-safe browser cookies and observed handoff
+
+Bridge cookie names use `fleetbase_was_v1_<scope-hash>_<purpose>`. The hash includes
+App, environment and service identity; flow and session purposes remain distinct.
+The fixed version prefix also avoids collisions with PHP's normalized aliases of
+older dotted names. Cookie values remain opaque, HttpOnly and same-site; all PKCE,
+flow expiry/consumption, session authority and MFA checks remain enforced.
+
+On 31 October 2026, real browser consent reached the callback but returned the
+missing-browser-flow response. The correctly scoped 64-character cookie existed
+in the browser. An actual PHP HTTP fixture proved that dotted names were parsed
+with underscores, so the server's dotted-name lookup could not find the cookie.
+Programmatically constructed Request cookie arrays had bypassed this parsing step.
+The PHP-safe fix is code revision `2c4ebc7547137827b33113444f56351b75f1f0cf`.
+Focused scope/purpose/parser checks and a real HTTP mixed-old/new-cookie fixture
+passed for both flow and session names. Do not attribute this failure to platform
+201 responses: the client already accepts successful 2xx responses.
+
+Managed deployment at diagnostic revision
+`4593485b02c87680dba87f6d38b40a6e1ec14028` reached READY with signed queue/revision
+proof and retained native data. At 04:30 SAST the new immutable `2c4ebc7` deployment
+was being prepared; real browser login on that cookie fix was still pending.
+A pushed code revision or this documentation does not prove its live activation.
