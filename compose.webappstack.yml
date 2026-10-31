@@ -84,6 +84,8 @@ services:
   queue:
     image: ${WEBAPPSTACK_API_IMAGE:?}
     restart: "no"
+    healthcheck:
+      disable: true
     command: ["php", "artisan", "queue:work", "--sleep=2", "--tries=3"]
     environment: *runtime
     extra_hosts:
@@ -96,6 +98,8 @@ services:
   scheduler:
     image: ${WEBAPPSTACK_API_IMAGE:?}
     restart: "no"
+    healthcheck:
+      disable: true
     command: ["php", "artisan", "schedule:work"]
     environment: *runtime
     extra_hosts:
