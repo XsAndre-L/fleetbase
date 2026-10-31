@@ -131,12 +131,12 @@ checks keep their separate bounds.
 The platform managed adapter journals detached named migration one-offs and retains
 their exit evidence. Schema observation timeouts preserve ongoing DDL and require
 reattaching the same immutable target; do not stop an active schema migration or
-reset its retained database. The current legacy review run remains pinned to its
+reset its retained database. The original legacy recovery run retained its
 original image/commit independently of subsequent fork dev commits.
 
 The cold-start source change was introduced in dev commit
 f18213372ed799a370ad7efac2620eae021dfbd6. The original retained WebAppStack
-review remains pinned to310688b9c1fe6a8f104cb478500acdb920771d8c; advancing
+review was pinned to310688b9c1fe6a8f104cb478500acdb920771d8c; advancing
 dev does not mutate its detached source, immutable image or prepared configuration.
 Adopting newer source requires a fresh prepared deployment after recovery.
 
