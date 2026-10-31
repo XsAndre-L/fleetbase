@@ -169,3 +169,13 @@ Managed deployment at diagnostic revision
 proof and retained native data. At 04:30 SAST the new immutable `2c4ebc7` deployment
 was being prepared; real browser login on that cookie fix was still pending.
 A pushed code revision or this documentation does not prove its live activation.
+
+At 04:42 SAST, the cookie-fix code pin `2c4ebc7547137827b33113444f56351b75f1f0cf`
+was READY through the real platform managed deployment path with retained data
+and signed queue/revision proof. A fresh real owner browser flow then passed:
+completion, bridge session and `/int/v1/users/me` returned HTTP200, and the console
+displayed the App delivery workspace and demo administrator without a second
+password. This establishes the real Deploy-to-owner-workspace path. Keep focused
+native MFA/replay/isolation fixture proof separate from this owner browser result;
+additional real revocation or role tests require their own recorded evidence.
+Subsequent documentation-only dev commits do not change the active `2c4ebc7` pin.
