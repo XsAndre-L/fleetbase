@@ -3,6 +3,8 @@
 namespace App\Integrations\WebAppStack;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Client\ConnectionException;
 
 class PlatformClient
 {
@@ -18,10 +20,24 @@ class PlatformClient
     public function request(string $operation, array $body): array
     {
         abort_unless(in_array($operation, ['redeem', 'validate'], true), 503);
-        $response = Http::withToken(config('webappstack.instance_credential'))
-            ->acceptJson()->asJson()->connectTimeout(2)->timeout(5)->withoutRedirecting()
-            ->post(rtrim(config('webappstack.platform_origin'), '/') . '/api/app-services/' . $operation, array_merge($body, $this->scope()));
-        abort_unless($response->successful(), 401, 'Delivery access is unavailable or revoked.');
+        try {
+            $response = Http::withToken(config('webappstack.instance_credential'))
+                ->acceptJson()->asJson()->connectTimeout(2)->timeout(5)->withoutRedirecting()
+                ->post(rtrim(config('webappstack.platform_origin'), '/') . '/api/app-services/' . $operation, array_merge($body, $this->scope()));
+        } catch (ConnectionException $error) {
+            Log::warning('webappstack.authority_connection_failed', [
+                'operation' => $operation,
+                'category' => 'connection_or_timeout',
+                'connectionClass' => ConnectionException::class,
+            ]);
+            throw $error;
+        }
+        if (!$response->successful()) {
+            Log::warning('webappstack.authority_rejected', AuthorityFailure::context(
+                $operation, $response->status(), $response->json('message')
+            ));
+            abort(401, 'Delivery access is unavailable or revoked.');
+        }
         $identity = $response->json();
         abort_unless(is_array($identity), 401);
         foreach ($this->scope() as $key => $value) {
